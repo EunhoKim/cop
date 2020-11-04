@@ -1,0 +1,79 @@
+# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
+version: '3.7'
+networks:
+  backend:
+    name: app
+    driver: bridge
+volumes:
+  postgres-data:
+# Define services
+services:
+  # App backend service
+  spring-boot-vuejs:
+    image: spring-boot-vuejs:latest
+    # Give the container the name web-app. You can changes to something else.
+    container_name: web-app
+    # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    ports:
+#      - "8080:8080"
+      - "8098:8098"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    # This service depends on postgres. Start that first.
+    depends_on:
+      - db
+    # Service health check
+    healthcheck:
+      test: curl -f http://localhost:8080/hello || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 2
+    environment:
+      - MYAPP_JDBC_URL=jdbc:postgresql://db:5432/cop?currentSchema=cop
+      - MYAPP_JDBC_USER=postgres
+      - MYAPP_JDBC_PASS=a454545!
+      - MYAPP_JDBC_DATABASE=cop
+      - CONFIGS="listen_addresses:'*',max_replication_slots:5"
+  frontend:
+    build:
+      context: frontend
+      dockerfile: ./Dockerfile
+    image: vuejs
+    container_name: vuejs
+    ports:
+      - 8080:8080
+    depends_on:
+      - spring-boot-vuejs
+    networks:
+      - backend
+  # Database Service (Postgres)
+  db:
+    # Use the Docker Image postgres. This will pull the 12 version.
+    image: postgres:12
+    # Give the container the name posenvironmenttgres-db. You can changes to something else.
+    container_name: postgres-db
+    restart: always
+    # Set a volume some that database is not lost after shutting down the container.
+    # I used the name postgres-data but you can changed it to something else.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    # Maps port 5432 (localhost) to port 5432 on the container. You can change the ports to fix your needs.
+    ports:
+      - "5432:5432"
+    # Setup the username, password, and database name. You can changes these values.
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: a454545!
+      POSTGRES_DB: cop
+      PGDATA: /var/lib/postgresql/data/pgdata
+    # Service health check
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 1m
+      timeout: 10s
+      retries: 2
