@@ -1,15 +1,12 @@
-Spring Boot + Vue.js + Postgresql + Docker를 활용한 Server 구축
+Spring Boot + Vue.js + Postgresql with github, docker
 
 사전준비
 
-Intellj idea 
-
-Jdk1.8 이상
-
-Node.js
-
-Postgresql
-
-docker
+ - Intellj idea 
+   ( git , maven)
+ - Jdk1.8 이상
+ - Node.js
+ - Postgresql
+ - docker
 
 참고자료 : https://github.com/jonashackt/spring-boot-vuejs 
